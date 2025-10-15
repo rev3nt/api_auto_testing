@@ -15,4 +15,4 @@ assert response.status_code == 200
 print("Запрос отработал корректно")
 
 # Выводим текст ответа в формате JSON
-print(response.text)
+print(response.json())
