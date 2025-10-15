@@ -57,5 +57,8 @@ class Test:
             time.sleep(2)
 
 
+# Создаем объект класса с тестами
 test = Test()
+
+# Запускаем необходимый тест из класса
 test.get_joke_from_every_category()
