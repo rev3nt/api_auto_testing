@@ -34,6 +34,7 @@ class Test:
 
         print(joke_text)
 
+
 # Создаем экземпляр тестового класса
 test = Test()
 
