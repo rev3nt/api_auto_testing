@@ -1,5 +1,7 @@
 import requests
 
+from test_put import PutTest
+
 
 class Test:
     # Базовый url
@@ -76,9 +78,37 @@ class Test:
         # Возвращаем json, полученный из ответа
         return get_response_json
 
-    def test_put_location(self):
-        path_url = f'{self.url}/maps/api/place/update/json?key=qaclick123'
+    def test_put_request(self):
+        # Формируем ссылку для PUT запроса
+        path_url = f"{self.url}/maps/api/place/update/json?key=qaclick123"
 
-        put_tester = PutTest(path_url)
+        # Создаем локацию
+        place_id = self.test_post_location()
 
-        put_tester.test_put()
+        # Помещаем json, созданной локации
+        unedited_location = self.test_get_location(place_id)
+
+        # Создаем экземпляр тестового класса из файла для выполнения PUT запроса
+        put_tester = PutTest(path_url, place_id)
+
+        # Вызываем функцию выполнения запроса
+        put_tester.put_request()
+
+        # Получаем новый json с измененными данными
+        edited_location = self.test_get_location(place_id)
+
+        # Сравниваем отредактированные поля
+        assert unedited_location['address'] != edited_location['address']
+        print("Адрес был успешно изменен")
+
+        # Сравниваем неотредактированные поля
+        assert unedited_location['location']['latitude'] == edited_location['location']['latitude']
+        print("Данные, не переданные в PUT запросы остались неизменными")
+
+        print("Тест успешно завершен")
+
+# Создаем экземпляры класса
+test = Test()
+
+# Выполняем метод тестирования PUT запроса
+test.test_put_request()

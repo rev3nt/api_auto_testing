@@ -1,66 +1,37 @@
 import requests
 
-from BigTestClass import Test
-
 
 class PutTest:
-    def __init__(self,url, place_id = ''):
+    def __init__(self,url, place_id):
         self.url = url
         self.place_id = place_id
 
     def put_request(self):
+        # Формируем тело PUT запроса
         put_payload = {"place_id": self.place_id,
                        "address": "100 Lenina street, RU",
                        "key": "qaclick123"}
 
+        # Делаем запрос к API
         put_response = requests.put(url=self.url, json=put_payload)
 
+        # Получаем статус код запроса
         response_status_code = put_response.status_code
         print("PUT успешно выполнен")
 
+        # Выполняем проверку соответствия статус кода к ожидаемому результату
         assert response_status_code == 200
         print("Статус код ответа корректен")
 
+        # Преобразуем ответ в json
         response_json = put_response.json()
+
+        # Извлекаем сообщение из json
         response_message = response_json["msg"]
 
+        # Записываем ожидаемый результат полученного сообщения
         successful_message = "Address successfully updated"
 
+        # Выполняем проверку, соответствует ли сообщение в json ожидаемому результату
         assert response_message == successful_message
         print("Запрос выполнен успешно")
-
-    def test_put_request(self):
-        # Создаем экземпляр класса, в который передаем url для запроса и id локации для редактирования
-
-        # Создаем экземпляр тестового класса
-        api = Test()
-
-        # Создаем локацию
-        self.place_id = api.test_post_location()
-
-        # Помещаем json, созданной локации
-        unedited_location = api.test_get_location(self.place_id)
-
-        # Изменяем локацию
-        self.put_request()
-
-        # Получаем новый json с измененными данными
-        edited_location = api.test_get_location(self.place_id)
-
-        # Сравниваем отредактированные поля
-        assert unedited_location['address'] != edited_location['address']
-        print("Адрес был успешно изменен")
-
-        # Сравниваем неотредактированные поля
-        assert unedited_location['location']['latitude'] == edited_location['location']['latitude']
-        print("Данные, не переданные в PUT запросы остались неизменными")
-
-        print("Тест успешно завершен")
-
-
-url = "https://rahulshettyacademy.com"
-path_url = f'{url}/maps/api/place/update/json?key=qaclick123'
-
-put_tester = PutTest(path_url)
-
-put_tester.test_put_request()
