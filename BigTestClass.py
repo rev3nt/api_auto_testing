@@ -6,6 +6,13 @@ from test_put import PutTest
 class Test:
     # Базовый url
     url = "https://rahulshettyacademy.com"
+    # Путь до файла с сохраненными id мест
+    file_path = 'C:\\Users\\user\\PycharmProjects\\api_autotesting\\place_id'
+
+    # Конструктор будет чистить файл при создании тестового экземпляра
+    def __init__(self):
+        with open(self.file_path, "w") as file:
+            file.write("")
 
     # Стандартный json, который будет использоваться в POST запросе
     payload = {"location": {
@@ -77,6 +84,26 @@ class Test:
 
         # Возвращаем json, полученный из ответа
         return get_response_json
+
+    # Функция сохраняющая в файл id, созданных ресурсов, создает и сохраняет count количество id
+    def save_place_id_to_file(self, count):
+        # Открывает файл и записываем созданные с помощью метода id мест
+        with open(self.file_path, "a") as file:
+            for i in range(count):
+                file.write(self.test_post_location() + "\n")
+
+    # Функция для чтения содержимого файла с id
+    def read_place_id_from_file(self):
+        # Массив с сохраненными id
+        place_ids = []
+
+        # Открываем файл на чтение и записываем каждую строку в массив
+        with open(self.file_path, "r") as file:
+            for word in file:
+                place_ids.append(word.strip())
+
+        # Возвращаем массив id
+        return place_ids
 
     def test_put_request(self):
         # Формируем ссылку для PUT запроса
