@@ -29,7 +29,7 @@ class PutTest:
         assert response_message == successful_message
         print("Запрос выполнен успешно")
 
-    def test_put(self):
+    def test_put_request(self):
         # Создаем экземпляр класса, в который передаем url для запроса и id локации для редактирования
 
         # Создаем экземпляр тестового класса
@@ -56,3 +56,11 @@ class PutTest:
         print("Данные, не переданные в PUT запросы остались неизменными")
 
         print("Тест успешно завершен")
+
+
+url = "https://rahulshettyacademy.com"
+path_url = f'{url}/maps/api/place/update/json?key=qaclick123'
+
+put_tester = PutTest(path_url)
+
+put_tester.test_put_request()
