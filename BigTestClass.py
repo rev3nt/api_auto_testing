@@ -1,6 +1,7 @@
 import requests
 
 from test_put import PutTest
+from test_delete import DeleteTest
 
 
 class Test:
@@ -9,10 +10,7 @@ class Test:
     # Путь до файла с сохраненными id мест
     file_path = 'C:\\Users\\user\\PycharmProjects\\api_autotesting\\place_id'
 
-    # Конструктор будет чистить файл при создании тестового экземпляра
-    def __init__(self):
-        with open(self.file_path, "w") as file:
-            file.write("")
+    clean_file_path = 'C:\\Users\\user\\PycharmProjects\\api_autotesting\\clean_place_id'
 
     # Стандартный json, который будет использоваться в POST запросе
     payload = {"location": {
@@ -26,6 +24,15 @@ class Test:
         "types": ["shoe park", "shop"],
         "website": "http://google.com",
         "language": "French-IN"}
+
+    # Конструктор будет чистить файл при создании тестового экземпляра
+    def __init__(self):
+        self.clear_file(self.file_path)
+        self.clear_file(self.clean_file_path)
+
+    def clear_file(self, path):
+        with open(path, "w") as file:
+            file.write("")
 
     # Функция для создания ресурса
     def test_post_location(self):
@@ -64,7 +71,11 @@ class Test:
         get_response = requests.get(path_url)
 
         # Проверяем статус-код на корректность
-        assert get_response.status_code == 200
+        if get_response.status_code != 200:
+            print("Запрашиваемый ресурс не найден (404)")
+
+            return get_response.json()
+
         print("GET запрос успешно выполнен")
 
         # Преобразуем в тело ответа в json
@@ -86,11 +97,17 @@ class Test:
         return get_response_json
 
     # Функция сохраняющая в файл id, созданных ресурсов, создает и сохраняет count количество id
-    def save_place_id_to_file(self, count):
-        # Открывает файл и записываем созданные с помощью метода id мест
-        with open(self.file_path, "a") as file:
-            for i in range(count):
-                file.write(self.test_post_location() + "\n")
+    def save_place_id_to_file(self, file_path, count=0, place_id = ''):
+        # Если в функцию передается id, то он сохраняется в файл
+        if place_id:
+            with open(file_path, "a") as file:
+                file.write(place_id + "\n")
+
+        else:
+            # Если в функцию не передается id, то в файле генерируется count количество локаций
+            with open(file_path, "a") as file:
+                for i in range(count):
+                    file.write(self.test_post_location() + "\n")
 
     # Функция для чтения содержимого файла с id
     def read_place_id_from_file(self):
@@ -127,15 +144,59 @@ class Test:
         # Сравниваем отредактированные поля
         assert unedited_location['address'] != edited_location['address']
         print("Адрес был успешно изменен")
-
         # Сравниваем неотредактированные поля
         assert unedited_location['location']['latitude'] == edited_location['location']['latitude']
         print("Данные, не переданные в PUT запросы остались неизменными")
 
         print("Тест успешно завершен")
 
+    def delete_if_id_not_exists(self):
+        # Выгружаем id локаций в список
+        ids = self.read_place_id_from_file()
+
+        # Проходимся по id
+        for place_id in ids:
+            # Делаем GET запросы по id и сохраняем json
+            response = self.test_get_location(place_id)
+
+            # Смотрим, есть ли в json поле msg, если да, то это говорит о том, что ресурса нет в API
+            if 'msg' in response:
+                print(f"Локация с id {place_id} отсутствует в api")
+
+            else:
+                # Если id есть в API, то мы сохраняем его в специальный файл
+                self.save_place_id_to_file(self.clean_file_path, place_id=place_id)
+                print(f"Локация с id {place_id} числится в api")
+
+    def test_delete_request(self):
+        # Чистим файл, если в нем остались данные от других проверок
+        self.clear_file(self.file_path)
+
+        # Создаем 5 id в файле
+        self.save_place_id_to_file(self.file_path, count=5)
+
+        # Считываем информацию из файла в список
+        ids = self.read_place_id_from_file()
+
+        # Собираю url для удаления ресурса с помощью метода DELETE
+        path_url = f"{self.url}/maps/api/place/delete/json?key=qaclick123"
+
+        # Создаю экземпляр класса для теста удаления
+        delete_tester = DeleteTest(path_url)
+
+        # Вызываю метод удаления ресурса по 2 id из файла
+        delete_tester.delete_request(ids[1])
+
+        # Вызываю метод удаления ресурса по 4 id из файла
+        delete_tester.delete_request(ids[3])
+
+        # Запускаю проверку id в файле на наличие в API
+        self.delete_if_id_not_exists()
+
+
 # Создаем экземпляры класса
 test = Test()
 
-# Выполняем метод тестирования PUT запроса
-test.test_put_request()
+# Выполняем метод тестирования DELETE запроса
+test.test_delete_request()
+print("Тест завершен успешно")
